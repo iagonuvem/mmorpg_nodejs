@@ -1,3 +1,5 @@
+var crypto = require('crypto');
+
 function UsuariosDAO(connection){
     this._connection = connection;
 }
@@ -7,6 +9,10 @@ UsuariosDAO.prototype.inserirUsuario = function(usuario){
         /** Define a colleção para executar a query */
         const collection = db.collection('usuarios');
 
+        // criptografa a senha
+        var senha_encrypted = crypto.createHash("md5").update(usuario.senha).digest("hex");
+        
+        usuario.senha = senha_encrypted;
         /** Query a executar na coleção definida */
         collection.insert(usuario);
         client.close();
@@ -16,6 +22,10 @@ UsuariosDAO.prototype.inserirUsuario = function(usuario){
 UsuariosDAO.prototype.autenticar = function(usuario, req, res){
     var mongoConnected = this._connection.connectToMongo(function(client, db){
         const collection = db.collection('usuarios');
+
+         // criptografa a senha
+        var senha_encrypted = crypto.createHash("md5").update(usuario.senha).digest("hex");
+        usuario.senha = senha_encrypted;
         collection.find(usuario).toArray(function(err, result){
             
             /** Verifica se encontrou algum registro no banco de dados */
